@@ -10,6 +10,12 @@ playwright-report/
 blob-report/
 coverage/
 
+# Local design and motion previews, including their standalone browser tests
+/design-preview/
+/public/motion-demo/*
+!/public/motion-demo/motion.js
+/tests/motion.spec.ts
+
 # Local settings, logs and deployment credentials
 *.log
 .env
@@ -21,6 +27,7 @@ coverage/
 *.pem
 
 # Reference images and video supplied for the experiments
+/reference/
 /[1-5].jpg
 /月相参考.jpg
 /风格参考.jpg

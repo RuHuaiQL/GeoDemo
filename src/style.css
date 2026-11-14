@@ -362,6 +362,9 @@ footer p { display: inline; margin-left: 8px }
 .selected-lunar-date {margin-top:4px}
 
 .experiment-content {min-height:100svh}
+.observatory-header {pointer-events:auto}
+.header-particles {position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1}
+.observatory-header nav button span {display:inline-block;pointer-events:none}
 .module-error {position:absolute;top:85px;left:var(--edge);z-index:8;background:var(--sheet);padding:6px 12px}
 
 @keyframes scene-appear {
@@ -383,3 +386,153 @@ footer p { display: inline; margin-left: 8px }
   .phase-preview,.phase-instruments,.timegroup,.eclipse-cross,.eclipse-note {animation-delay:120ms}
   .lunar-calendar,.controls-grid,.solar-sites,.eclipse-timeline {animation-delay:165ms}
 }
+
+.observatory[data-mode=phase] {overflow-anchor:none}
+.phase-lab,.eclipse-lab {background:radial-gradient(ellipse at 47% 54%,#1a3045 0%,#101e31 44%,#080f1d 82%)}
+.space-stars {position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.observatory .observatory-header {
+  inset:10px var(--edge) auto;min-height:54px;padding:6px 14px;
+  background:transparent;border:0;
+}
+.observatory .observatory-header nav {gap:6px}
+.observatory .observatory-header nav button {
+  border-radius:var(--nav-radius,12px);background:#304651;color:#edf1ec;
+  border:1px solid #8da7ac40;padding:5px 14px;box-shadow:none;
+}
+.observatory .observatory-header nav button[aria-pressed=true] {background:#eed4a6;color:#24343b;border-color:#eed4a6}
+.observatory .phase-lab .space-panel h2,.phase-lab .phase-preview,.observatory .panel-toggle,
+.observatory .lunar-calendar,.observatory .lunar-calendar strong {color:#edf2ed}
+.observatory .phase-lab .phase-preview,.observatory .floating-panel {border-color:#c4d5e45c}
+.observatory .panel-toggle:hover {background:#1f3546}
+.observatory .panel-body {background:#eff0e6}
+.observatory .space-panel button {background:#263949;color:#e9efe9;border-color:#8ea3b056}
+.observatory .lunar-calendar {background:#14232fdd;border-radius:10px}
+.observatory :focus-visible {outline-color:#cc9856}
+.observatory:has(.solar-lab[data-night=false]) .observatory-header {color:#183a38}
+.observatory:has(.solar-lab[data-night=false]) .observatory-header :is(.lab-name,.header-note) {color:#28423d}
+.phase-lab .phase-preview {text-align:center}
+.phase-lab .phase-preview strong {display:block;font-family:SimSun,"Songti SC",serif}
+.eclipse-lab .eclipse-preview {width:clamp(160px,16vw,250px);border:0;padding:0}
+.eclipse-preview .moon-disc {display:block;width:100%;max-width:none;margin:0}
+.eclipse-heading :is(h2,.eyebrow) {color:#edf2ed}
+.lunar-dock,.eclipse-timeline {
+  --ink:#edf2ed;--muted:#cedae2;--line:#b4c6d452;
+  color:var(--ink);background:rgb(22 41 55 / 64%);border-color:var(--line);backdrop-filter:blur(8px);
+}
+:is(.lunar-dock,.eclipse-timeline) :is(button,select) {background-color:#253e4dad;color:var(--ink)}
+:is(.lunar-dock,.eclipse-timeline) button:hover {background-color:#415669}
+:is(.lunar-dock,.eclipse-timeline) button[aria-pressed=true] {background-color:#486556}
+.eclipse-timeline .contact-track button {background:transparent}
+.lunar-dock option {background:#253e4d}
+.observatory:is([data-mode=phase],[data-mode=eclipse]) {background:#101e31}
+.observatory:is([data-mode=phase],[data-mode=eclipse]) :is(.help,footer) {background:rgb(30 48 61 / 65%);color:#d5dee3}
+@media(max-width:760px){
+  .eclipse-lab .eclipse-preview {width:clamp(98px,27vw,150px)}
+}
+
+@keyframes text-appear {
+  from {filter:blur(var(--text-blur,9px));opacity:0}
+  to {filter:blur(0);opacity:1}
+}
+@media (prefers-reduced-motion:no-preference) {
+  .observatory :where(h1,h2:not([aria-label]),h3,h4,p,button,summary,label,legend,select,
+      .lab-name,dt,dd,thead,tbody,figcaption,footer,svg text,.phase-preview strong,.timeline-heading>span) {
+    animation:text-appear 310ms cubic-bezier(.22,1,.36,1) backwards;
+  }
+}
+
+@media(max-width:760px){
+  .observatory .observatory-header {inset:6px 8px auto;min-height:76px;padding:5px 10px}
+  .observatory .observatory-header nav button {padding:4px 10px}
+}
+
+/* Compact instrument menus and time scales shared by the three experiments. */
+.glide-trigger,.solar-controls .glide-trigger {
+  display:inline-flex;align-items:center;justify-content:space-between;gap:.65em;
+  padding:5px 9px;min-height:30px;border-radius:8px;font:inherit;text-align:left;
+}
+.glide-trigger small {font-size:.85em;opacity:.78}
+.glide-trigger i {width:7px;height:7px;border:solid currentColor;border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg)}
+.glide-trigger[aria-expanded=true] i {transform:translateY(2px) rotate(225deg)}
+.city-select {display:grid;gap:3px;margin:7px 0;color:var(--muted)}
+.coordinate .glide-trigger {min-width:0;padding-inline:5px;white-space:nowrap}
+.speed-select {display:flex;align-items:center;gap:5px}
+.glide-list {
+  position:fixed;z-index:100;padding:4px;overflow:auto;overscroll-behavior:contain;
+  border:1px solid #71877f;border-radius:11px;background:#1f353b;color:#f8f4e7;
+  box-shadow:0 9px 25px #0a151d38;transform-origin:top left;font-size:13px;scrollbar-width:thin;
+}
+.glide-list [role=option] {position:relative;display:flex;gap:8px;align-items:center;height:35px;padding:0 8px;cursor:pointer}
+.glide-list small {color:#cfddd6;font-size:11px}
+.glide-list b {margin-left:auto;min-width:12px;color:#f2d191}
+.glide-highlight {position:absolute;left:4px;right:4px;top:4px;height:35px;border-radius:7px;background:#40585a;pointer-events:none}
+@media(prefers-reduced-motion:no-preference){
+  .glide-highlight {transition:transform 180ms cubic-bezier(.2,.75,.2,1)}
+  .glide-list {animation:glide-open 150ms ease-out}
+}
+@keyframes glide-open {from {opacity:0;scale:.97} to {opacity:1;scale:1}}
+
+.wake-slider {position:relative;height:32px;min-width:0;margin:2px 7px;color:#edcc90}
+.wake-bars {position:absolute;inset:0;display:flex;gap:clamp(1px,.3vw,4px);align-items:center;pointer-events:none}
+.wake-bars i {flex:1;border-radius:2px;background:#8ba09f88}
+.wake-bars i[data-lit=true] {background:currentColor}
+.wake-cursor {position:absolute;top:50%;height:18px;width:5px;transform:translate(-50%,-50%);background:#fff3cc;border-radius:4px;pointer-events:none}
+.wake-slider input[type=range] {position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.wake-slider:has(input:focus-visible) {outline:2px solid #e7bf7a;outline-offset:3px;border-radius:4px}
+@media(prefers-reduced-motion:no-preference){.wake-bars i {transition:height 130ms ease-out}}
+@media(forced-colors:active){.wake-slider input[type=range] {opacity:1}}
+.lunar-dock {width:100%;flex-wrap:wrap;gap:6px 14px}
+.lunar-timeline {width:100%}
+.lunar-timeline label,.solar-timeline label {font-size:13px}
+.lunar-timeline strong {margin-left:5px;font-size:18px}
+.phase-instruments,.phase-instruments .panel-body {scrollbar-width:none}
+.phase-instruments::-webkit-scrollbar,.phase-instruments .panel-body::-webkit-scrollbar {display:none}
+
+.timegroup.solar-timeline {
+  top:auto;bottom:17px;left:50%;right:auto;transform:translateX(-50%);
+  width:min(890px,calc(100% - 2 * var(--edge)));display:grid;grid-template-columns:auto 1fr;
+  align-items:center;gap:2px 16px;padding:9px 22px;border:1px solid #67808580;
+  border-radius:8px;background:#162937ce;backdrop-filter:blur(8px)
+}
+.solar-timeline label {gap:8px}.solar-timeline strong {font-size:22px}
+.solar-timeline p {text-align:right}.solar-timeline .wake-slider {grid-column:1/-1}
+.solar-sites {bottom:110px}
+.solar-controls {top:225px;max-height:calc(100% - 398px)}
+.solar-detail {max-height:calc(77% - 178px)}
+@media(max-width:760px){
+  .timegroup.solar-timeline {bottom:10px;padding:6px 12px;gap:0 5px}
+  .solar-timeline strong {font-size:17px}
+  .solar-timeline p {font-size:10px}
+  .solar-almanac.timegroup {display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+  .solar-almanac .solar-times {flex:1}
+  .solar-almanac .solar-sheet-toggle {position:static}
+  .solar-controls {top:216px;max-height:calc(100% - 363px)}
+  .solar-sites {bottom:88px}
+  .solar-detail {bottom:135px;max-height:30svh}
+  .glide-list [role=option] {touch-action:pan-y}
+}
+
+.site-rail {
+  position:absolute;z-index:3;left:var(--edge);bottom:105px;display:grid;gap:5px;
+}
+.site-rail button {
+  position:relative;display:grid;place-items:center;width:36px;height:36px;padding:0;
+  color:#f4edda;background:#203b40e8;border:1px solid #a6b8ac80;border-radius:10px;
+  font-size:20px;line-height:1;
+}
+.site-rail button[aria-pressed=true] {color:#243933;background:#efcea0}
+.site-name {
+  position:absolute;left:calc(100% + 5px);top:0;display:grid;align-items:center;height:100%;
+  padding:0 10px;border:1px solid #71877f;border-radius:8px;white-space:nowrap;
+  font-size:13px;background:#1f353bf5;color:#f8f4e7;transform-origin:left center;
+  opacity:0;visibility:hidden;transform:translateX(-4px) scale(.97);pointer-events:none;
+}
+@media (hover:hover) {
+  .site-rail button:hover .site-name {opacity:1;visibility:visible;transform:none}
+}
+.site-rail button:focus-visible .site-name {opacity:1;visibility:visible;transform:none}
+@media(prefers-reduced-motion:no-preference){
+  .site-name {transition:opacity 150ms ease-out,transform 180ms cubic-bezier(.2,.75,.2,1),visibility 150ms}
+}
+.solar-lab:has(.solar-detail) .site-rail {visibility:hidden}
+@media(max-width:760px){.site-rail {bottom:90px;gap:3px}.site-rail button {width:38px;height:36px}}

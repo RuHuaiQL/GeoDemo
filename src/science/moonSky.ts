@@ -29,12 +29,22 @@ export function moonSky(date: string, latitude: number, longitude: number, start
     boundaries.sort((a, b) => a - b);
     const paths: SunPath[] = [];
     for (let i = 1; i < boundaries.length; i++) {
-      const from = boundaries[i - 1], to = boundaries[i];
+      let from = boundaries[i - 1], to = boundaries[i];
       if (to <= from || position((from + to) / 2).altitude <= 0) continue;
+      // Extend midnight-clipped passes to actual crossings on the adjacent day.
+      // For a continuously visible polar day, keep the selected day's endpoints.
+      if (from === 0 && to < hours) {
+        const rise = SearchAltitude(Body.Moon, observer, 1, midnight, -1.2, 0);
+        if (rise) from = (rise.ut - midnight.ut) * 24;
+      }
+      if (to === hours && from > 0) {
+        const set = SearchAltitude(Body.Moon, observer, -1, midnight.AddDays(hours/24), 1.2, 0);
+        if (set) to = (set.ut - midnight.ut) * 24;
+      }
       const steps = Math.max(1, Math.ceil((to - from) * 6));
       const points = Array.from({length: steps + 1}, (_, n) => position(from + (to - from) * n / steps));
-      if (from > 0) points[0].altitude = 0;
-      if (to < hours) points[steps].altitude = 0;
+      if (from !== 0) points[0].altitude = 0;
+      if (to !== hours) points[steps].altitude = 0;
       paths.push({points, closed: false});
     }
     return paths;

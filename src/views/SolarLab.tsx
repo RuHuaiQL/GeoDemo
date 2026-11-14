@@ -1,3 +1,6 @@
+import GlideSelect from './GlideSelect';
+import WakeSlider from './WakeSlider';
+import {ExperimentTitle} from './ExperimentMotion';
 import {Canvas, useFrame, useThree} from '@react-three/fiber';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {Component, Suspense, useEffect, useMemo, useRef, useState, type RefObject, type ReactNode} from 'react';
@@ -215,47 +218,12 @@ function SkyDome({top, horizon}: {top: string; horizon: string}) {
   </mesh>;
 }
 
-function Stars({opacity}: {opacity: number}) {
-  const geometry = useMemo(() => {
-    const positions = new Float32Array(600);
-    let seed = 23;
-    const random = () => {
-      seed = (seed * 1664525 + 1013904223) >>> 0;
-      return seed / 4294967296;
-    };
-    for (let i = 0; i < 200; i++) {
-      const azimuth = random() * Math.PI * 2;
-      const altitude = Math.asin(0.04 + random() * 0.95);
-      const radius = 31;
-      const horizontal = Math.cos(altitude) * radius;
-      positions[i * 3] = horizontal * Math.sin(azimuth);
-      positions[i * 3 + 1] = Math.sin(altitude) * radius;
-      positions[i * 3 + 2] = -horizontal * Math.cos(azimuth);
-    }
-    const result = new THREE.BufferGeometry();
-    result.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    return result;
-  }, []);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  return <points geometry={geometry} visible={opacity > 0.01}>
-    <pointsMaterial size={0.15} sizeAttenuation color="#e8f0ff" transparent opacity={opacity} depthWrite={false} toneMapped={false}/>
-  </points>;
-}
-
 function SkyGrid() {
   return <group>
     <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       <torusGeometry args={[HORIZON_RADIUS, 0.018, 6, 128]}/>
       <meshBasicMaterial color="#c9b07b" transparent opacity={0.6} toneMapped={false}/>
     </mesh>
-    {[30, 60].map(altitude => {
-      const radius = HORIZON_RADIUS * Math.cos(altitude * RAD);
-      const height = HORIZON_RADIUS * Math.sin(altitude * RAD);
-      return <mesh key={altitude} position={[0, height, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[radius, 0.009, 6, 96]}/>
-        <meshBasicMaterial color="#9fb6cf" transparent opacity={0.22} toneMapped={false}/>
-      </mesh>;
-    })}
     {[['北', 0], ['东', 90], ['南', 180], ['西', 270]].map(([label, azimuth]) => {
       const point = enuToScene(altAzToENU(0, Number(azimuth)), HORIZON_RADIUS + 2.2);
       return <LabelSprite key={String(label)} text={String(label)} position={[point[0], 0.85, point[2]]} height={0.62} color="#d3e2f2" background="rgba(7,12,22,0.4)" constantSize={0.027}/>;
@@ -330,7 +298,6 @@ function Scene({position, day, path, moonPosition, moonPaths, clock, focusId, st
   const palette = useMemo(() => skyPalette(position.altitude), [position.altitude]);
   const daylight = Math.max(0, Math.sin(position.altitude * RAD));
   const nightGlow = clamp(1 - daylight * 5, 0, 1);
-  const starOpacity = clamp((6 - position.altitude) / 14, 0, 1);
   const lightPoint = position.aboveHorizon
     ? enuToScene(altAzToENU(position.altitude, position.azimuth ?? 180), 26)
     : [0, 24, 0] as Vec3;
@@ -338,7 +305,6 @@ function Scene({position, day, path, moonPosition, moonPaths, clock, focusId, st
     <color attach="background" args={[palette.horizon]}/>
     <fog attach="fog" args={[palette.horizon, 29, 58]}/>
     <SkyDome top={palette.top} horizon={palette.horizon}/>
-    <Stars opacity={starOpacity}/>
     <ambientLight intensity={0.13 + daylight * 0.42}/>
     <hemisphereLight color={palette.top} groundColor="#3b3529" intensity={0.26 + daylight * 0.7}/>
     <directionalLight position={[10, 10, -16]} color="#cfe0f0" intensity={0.4 + daylight * 0.8}/>
@@ -408,11 +374,9 @@ function CoordInput({axis, value, onChange}: {
       <span>°</span>
       <AngleField label={label + '分数'} value={minutes} max={degrees === max ? 0 : 59} onChange={n => update(degrees, n)}/>
       <span>′</span>
-      <select aria-label={label + '方向'} value={negative ? 'negative' : 'positive'}
-        onChange={event => onChange(event.target.value === 'negative' ? -Math.abs(value) : Math.abs(value))}>
-        <option value="positive">{lat ? 'N 北纬' : 'E 东经'}</option>
-        <option value="negative">{lat ? 'S 南纬' : 'W 西经'}</option>
-      </select>
+      <GlideSelect label={label+'方向'} value={negative?'negative':'positive'}
+        onChange={v=>onChange(v==='negative'?-Math.abs(value):Math.abs(value))}
+        options={[{value:'positive',label:lat?'N 北纬':'E 东经'},{value:'negative',label:lat?'S 南纬':'W 西经'}]}/>
     </div>
   </fieldset>;
 }
@@ -453,7 +417,9 @@ export default function SolarLab() {
   const [showMoon, setShowMoon] = useState(false);
   const moon = useMemo(() => showMoon ? moonSky(dateISO, latitude, longitude, civil.start, civil.hours) : null,
     [showMoon, dateISO, latitude, longitude, civil]);
-  const moonPaths = useMemo(() => moon?.visiblePaths() ?? [], [moon]);
+  const passes = useMemo(() => moon?.visiblePaths() ?? [], [moon]);
+  const pass = passes.find(arc => arc.points[arc.points.length - 1].time >= time) ?? passes.at(-1);
+  const moonPaths = pass ? [pass] : [];
   const moonPosition = useMemo(() => moon?.position(time) ?? null, [moon, time]);
   const day = useMemo(
     () => solarDay(date, latitude, longitude, zone),
@@ -573,7 +539,7 @@ export default function SolarLab() {
     <div className="solar-heading">
       <div>
         <p className="eyebrow">{city ? city.name + '　／　' + city.zone : '自定义观测点'}</p>
-        <h2>太阳周日视运动</h2>
+        <ExperimentTitle>太阳周日视运动</ExperimentTitle>
       </div>
     </div>
     <div className="solar-main">
@@ -637,17 +603,20 @@ export default function SolarLab() {
             </>}
           </div>
         </div>}
-        <div className="solar-sites">
-          <h3>地景观察</h3>
-          <div className="solar-site-list">
-            {SITES.map(site => <button key={site.id} aria-pressed={focusId === site.id} onClick={() => openSite(site.id)}>{site.short}</button>)}
-          </div>
-        </div>
-      <section className="timegroup" aria-label="当地观测时间">
+        <nav className="site-rail" aria-label="地景观察">
+          {SITES.map(site => <button key={site.id} aria-label={site.short} aria-pressed={focusId === site.id}
+            onClick={() => openSite(site.id)}>
+            <span aria-hidden="true">{site.short.split(' ')[0]}</span>
+            <span className="site-name" aria-hidden="true">{site.title}</span>
+          </button>)}
+        </nav>
+      <section className="solar-timeline timegroup" aria-label="当地观测时间">
         <label htmlFor="solar-time">当地时间 <strong>{clock(time)}</strong></label>
         <p>{calendarDate}　农历{lunarDate(calendarDate)}</p>
-        <input id="solar-time" type="range" min={0} max={civil.hours} step="0.05" value={time}
+        <WakeSlider id="solar-time" min={0} max={civil.hours} step="0.05" value={time}
           aria-valuetext={clock(time)} onChange={e => setTime(Number(e.target.value), civil.hours)}/>
+      </section>
+      <section className="timegroup solar-almanac" aria-label="日出与日落">
         <dl className="solar-times">
           <div><dt>日出</dt><dd>{riseLabel}</dd></div>
           <div><dt>上中天</dt><dd>{clock(day.noon)}</dd></div>
@@ -658,12 +627,10 @@ export default function SolarLab() {
       </section>
       <section id="solar-settings" className="solar-controls" data-open={settingsOpen}>
         <div className="solar-controls-head"><h2>观测设置</h2></div>
-        <label>典型城市
-          <select value={cityId} onChange={event => setCity(event.target.value)}>
-            {CITIES.map(city => <option key={city.id} value={city.id}>{city.name}（{city.zone}）</option>)}
-            <option value="custom">自定义坐标</option>
-          </select>
-        </label>
+        <div className="city-select"><span>典型城市</span>
+          <GlideSelect label="典型城市" value={cityId} onChange={setCity}
+            options={[...CITIES.map(city=>({value:city.id,label:city.name,tag:city.zone})),{value:'custom',label:'自定义坐标'}]}/>
+        </div>
         <div className="solar-coords">
           <CoordInput axis="latitude" value={latitude} onChange={setLatitude}/>
           <CoordInput axis="longitude" value={longitude} onChange={setLongitude}/>
@@ -687,7 +654,7 @@ export default function SolarLab() {
     <p className="solar-footnote">建筑、草地、星空与天色为教学场景；阴影由太阳方向实时投射，距离和尺度均为示意，不用于真实天象预报。</p>
     <details className="help"><summary>使用帮助与模型边界</summary>
       <p>先选日期和城市或手动经纬度，再用当地时间滑块扫描一天；轨迹只绘制地平线以上部分。极昼、极夜会直接显示在日出日落栏。</p>
-      <p>勾选“显示月球视运动”后，青色弧线表示当天的月球轨迹。月球标记给出该时刻的位置，月心落到几何地平线下时消失。四季快捷键按观测点所在半球命名。</p>
+      <p>勾选“显示月球视运动”后，青色弧线表示本次可见的月球轨迹，跨午夜时延伸至相邻日期的月升或月落。月球标记给出该时刻的位置，月心落到几何地平线下时消失。四季快捷键按观测点所在半球命名。</p>
       <p>日出、日落采用太阳中心位于地平线的几何时刻，忽略大气折射，城市钟表采用当地民用时间。</p>
       <p>建筑、草地、星空和天色为示意场景，阴影由太阳方向实时投射。模型不用于真实天象预报、摄影计划或导航。</p>
     </details>

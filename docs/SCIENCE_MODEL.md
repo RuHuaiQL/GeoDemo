@@ -24,3 +24,5 @@
 本次主舞台/月食改版：普通月相公式保持原样。独立真实事件月食回放与非零轨道倾角对照见 ECLIPSE_MODEL.md；这里的零倾角假设不用于判定月食。
 
 太阳周日视运动是独立模块，使用真实日期、纬度和经度及北京时间，不参与本文件的理想月相公式；公式、几何日出日落和极昼极夜处理见 SOLAR_MODEL.md。
+
+日地月空间的地球夜灯使用 [Solar System Scope](https://www.solarsystemscope.com/textures/) 的地球夜面贴图（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)），取自 [Three.js 地球示例](https://threejs.org/examples/webgpu_tsl_earth.html) 的缩放版本。渲染时提取暖色灯光，并按朝向太阳的角度在晨昏线附近平滑衰减。

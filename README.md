@@ -1,5 +1,13 @@
 # GeoDemo
 
+## 交互动效
+
+鼠标靠近按钮时，背景、边框和文字一起向指针偏移，切换模块时标题重新显现。[日地月空间星空](src/views/Stars.tsx)使用独立的密度、大小、亮度、闪烁和漂移参数，远近星点会随鼠标产生不同幅度的视差。
+
+在 [motion.js](public/motion-demo/motion.js) 顶部的 `config` 中调整参数。`title` 控制单字时长、错峰间隔（毫秒）、模糊半径、位移和缓动曲线。`magnet` 控制感应距离、最大偏移（像素）、弹簧刚度和阻尼。`particles` 控制颜色、数量上限、粒径、漂移速度（像素/秒）、持续时间和视差幅度。
+
+移植到原生页面时，加载动效脚本，调用 `GeoMotion.magnets(nav)`、`GeoMotion.reveal(heading)` 和 `GeoMotion.particles(canvas)`。三个方法均返回清理函数。React 接入示例见 [ExperimentMotion.tsx](src/views/ExperimentMotion.tsx) 和 [App.tsx](src/App.tsx)。组件挂载后用 ref 绑定，在 effect 清理时释放。标题保留完整的无障碍名称，逐字动画只用于视觉呈现。
+
 纯前端教学应用：三维日地月空间、农历日期滑块、可点选的八相示意图、月出中天月落对照和朔望月播放；另含太阳周日视运动模块，可按日期、城市或经纬度观察太阳轨迹与地景光照。无需后端或账户，不采集或保存学生成绩。
 
 ## 本地运行

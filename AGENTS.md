@@ -18,7 +18,7 @@ Use Node.js 24, the version validated for this project.
 
 ## Deployment
 
-After each application update, run `.\一键更新月相实验室.cmd` once from the repository root. Check the script result and verify the updated application at [the live site](http://203.236.144.27/).
+After each application update, run `.\reference\一键更新月相实验室.cmd` once from the repository root. Check the script result and verify the updated application at [the live site](http://203.236.144.27/).
 
 ## Coding Style and Naming
 

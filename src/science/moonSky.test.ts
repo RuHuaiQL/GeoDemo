@@ -9,16 +9,19 @@ it('matches the Moon direction at the NASA 2024 total eclipse maximum', () => {
   expect(Math.abs(moon.azimuth - 149.4)).toBeLessThan(0.2);
 });
 
-it('keeps the two visible parts of a day separate and rolls 24:00 into tomorrow', () => {
-  const sky = moonSky('2026-06-30', 39.9042, 116.4074);
+it.each(['2026-06-30','2026-12-21'])('covers both complete moon passes across midnight in Beijing on %s', date => {
+  const sky = moonSky(date, 39.9042, 116.4074);
   const paths = sky.visiblePaths();
   expect(paths).toHaveLength(2);
-  expect(paths[0].points[0].time).toBe(0);
-  expect(paths[1].points.at(-1)?.time).toBe(24);
+  expect(paths[0].points[0].time).toBeLessThan(0);
+  expect(paths[1].points.at(-1)?.time).toBeGreaterThan(24);
   expect(paths[0].points.at(-1)?.altitude).toBe(0);
   expect(paths[1].points[0].altitude).toBe(0);
   for (const path of paths) expect(path.points.every(p => p.altitude >= 0)).toBe(true);
-  expect(sky.position(24).altitude).toBeCloseTo(moonSky('2026-07-01', 39.9042, 116.4074).position(0).altitude, 7);
+  for (const path of paths) {
+    expect(path.points[0].altitude).toBe(0);
+    expect(path.points.at(-1)?.altitude).toBe(0);
+  }
 });
 
 it('supports a Moon continuously below or above the polar horizon', () => {
